@@ -4,11 +4,7 @@ A lightweight macOS desktop app for Facebook Messenger, built with Electron.
 
 ## Features
 
-- **Standalone Messenger window** — no browser tabs, no distractions
-- **Loading spinner** — shows a spinner while Messenger loads in the background
-- **Navbar links open externally** — clicking navigation links (Marketplace, Gaming, etc.) opens them in your default browser instead of navigating away from Messenger
-- **Custom CSS/JS injection** — edit `custom.css` and `custom.js` to personalize the UI
-- **User-agent spoofing** — prevents Facebook from blocking the embedded browser
+- **Official messenger app is being deprecated - wrapped fb.com/messenger w/ electron**
 
 ## Prerequisites
 
