@@ -114,6 +114,13 @@ ipcMain.on("open-external", (event, url) => {
   }
 });
 
+// Update dock badge when unread count changes
+ipcMain.on("set-badge-count", (event, count) => {
+  if (process.platform === "darwin") {
+    app.dock.setBadge(count > 0 ? String(count) : "");
+  }
+});
+
 app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {

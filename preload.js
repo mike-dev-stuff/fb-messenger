@@ -5,4 +5,5 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("messengerApp", {
   platform: process.platform,
   openExternal: (url) => ipcRenderer.send("open-external", url),
+  setBadgeCount: (count) => ipcRenderer.send("set-badge-count", count),
 });
