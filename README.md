@@ -61,3 +61,6 @@ package.json     — Project config and build settings
 ## License
 
 ISC
+
+## Attributions
+<a href="https://www.flaticon.com/free-icons/logo" title="logo icons">Logo icons created by Freepik - Flaticon</a>
