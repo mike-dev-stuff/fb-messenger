@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(sips:*)",
+      "Bash(python3:*)",
+      "Bash(pip3 install:*)",
+      "Bash(iconutil -c icns /Users/mike/repos/messenger/icon.iconset -o /Users/mike/repos/messenger/icon.icns)",
+      "Bash(rm -rf dist)",
+      "Bash(find /Users/mike/repos/messenger/dist -maxdepth 1 -type f -delete)"
+    ]
+  }
+}

@@ -1,0 +1,67 @@
+# Messenger
+
+A lightweight macOS desktop app for Facebook Messenger, built with Electron.
+
+## Features
+
+- **Standalone Messenger window** — no browser tabs, no distractions
+- **Loading spinner** — shows a spinner while Messenger loads in the background
+- **Navbar links open externally** — clicking navigation links (Marketplace, Gaming, etc.) opens them in your default browser instead of navigating away from Messenger
+- **Custom CSS/JS injection** — edit `custom.css` and `custom.js` to personalize the UI
+- **User-agent spoofing** — prevents Facebook from blocking the embedded browser
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18+)
+- npm
+
+## Setup
+
+```sh
+npm install
+```
+
+## Development
+
+```sh
+npm start
+```
+
+## Build
+
+Builds a macOS `.dmg` and `.app` bundle:
+
+```sh
+npm run build
+```
+
+Output goes to the `dist/` directory:
+- `dist/mac-arm64/Messenger.app` — the app bundle
+- `dist/Messenger-1.0.0-arm64.dmg` — distributable disk image
+
+> The app is ad-hoc signed. On first launch you may need to right-click and choose **Open** to bypass Gatekeeper.
+
+## Customization
+
+| File | Purpose |
+|------|---------|
+| `custom.css` | Injected into the page after load — add your own styles |
+| `custom.js` | Injected into the page after load — add your own scripts |
+| `icon.iconset/` | macOS icon source PNGs — regenerate `icon.icns` with `iconutil -c icns icon.iconset` |
+
+## Project Structure
+
+```
+main.js          — Electron main process (window, session, IPC)
+preload.js       — Preload script (exposes safe APIs to the renderer)
+custom.css       — Custom styles injected into Messenger
+custom.js        — Custom scripts injected into Messenger
+icon.icns        — macOS app icon
+icon.iconset/    — Source PNGs for the icon
+messenger.png    — Original logo source image
+package.json     — Project config and build settings
+```
+
+## License
+
+ISC

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.dmg
+*.blockmap
+
+.DS_Store
+Thumbs.db
+
+.env
+.env.*
