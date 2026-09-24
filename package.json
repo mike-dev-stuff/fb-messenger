@@ -1,35 +1,15 @@
 {
   "name": "messenger",
   "version": "0.0.2",
-  "description": "",
-  "main": "main.js",
-  "scripts": {
-    "start": "electron .",
-    "build": "electron-builder --mac",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
+  "description": "A lightweight macOS desktop app for Facebook Messenger",
   "license": "ISC",
-  "type": "commonjs",
-  "build": {
-    "appId": "com.messenger.desktop",
-    "productName": "Messenger",
-    "mac": {
-      "category": "public.app-category.social-networking",
-      "target": "dmg",
-      "icon": "icon.icns"
-    },
-    "files": [
-      "main.js",
-      "preload.js",
-      "custom.css",
-      "custom.js",
-      "package.json"
-    ]
+  "scripts": {
+    "start": "tauri dev",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "tauri": "tauri"
   },
   "devDependencies": {
-    "electron": "^41.0.3",
-    "electron-builder": "^26.8.1"
+    "@tauri-apps/cli": "^2"
   }
 }

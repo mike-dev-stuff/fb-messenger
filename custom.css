@@ -1,1 +1,17 @@
 /* Custom styles for Messenger app */
+
+/*
+ * Hide the Facebook top bar.
+ *
+ * The app runs on facebook.com/messages because messenger.com keeps a
+ * separate session whose SSO handoff is broken (its 2FA pre-auth page
+ * errors out). That gets us a working inbox, but drags Facebook's chrome
+ * along with it.
+ *
+ * Targeted by aria-label on purpose: the page has three navigation
+ * landmarks and only this one is the Facebook bar. "Thread list" is
+ * Messenger's own chat list and must survive.
+ */
+[role="navigation"][aria-label="Facebook"] {
+  display: none !important;
+}

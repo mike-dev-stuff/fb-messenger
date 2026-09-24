@@ -1,5 +1,8 @@
 node_modules/
-dist/
+.claude/settings.local.json
+src-tauri/target/
+src-tauri/gen/schemas/
+
 *.dmg
 *.blockmap
 

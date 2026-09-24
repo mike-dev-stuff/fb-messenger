@@ -1,0 +1,20 @@
+{
+  "$schema": "../gen/schemas/remote-schema.json",
+  "identifier": "messenger-remote",
+  "description": "Messenger is a remote origin, so it needs explicit permission to reach the app's IPC. Without this the dock badge silently stops updating.",
+  "windows": [
+    "main"
+  ],
+  "remote": {
+    "urls": [
+      "https://messenger.com",
+      "https://*.messenger.com",
+      "https://facebook.com",
+      "https://*.facebook.com"
+    ]
+  },
+  "permissions": [
+    "allow-update-badge",
+    "allow-debug-report"
+  ]
+}
