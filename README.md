@@ -8,7 +8,8 @@ A lightweight macOS desktop app for Facebook Messenger, built with [Tauri](https
 - Unread count mirrored onto the dock icon
 - Facebook's top bar hidden, so you get Messenger without the Facebook chrome
 - Zoom with Cmd+- / Cmd+= / Cmd+0, remembered between launches
-- Off-site links open in your real browser instead of hijacking the window
+- Links in chats open in your default browser, unwrapped from Facebook's
+  `l.facebook.com` redirector so you land on the real destination
 - ~4 MB app bundle, using the system WebKit rather than shipping a browser
 
 ## Prerequisites
@@ -111,6 +112,12 @@ cancelling off-site URLs there also kills any third-party iframe. Facebook's
 two-step verification embeds its captcha from `fbsbx.com`, and blocking it
 made logging in impossible: the window sat on a half-rendered Meta shell
 while the captcha opened in your default browser instead.
+
+Links in messages are `target="_blank"` anchors pointing at Facebook's
+redirector (`l.facebook.com/l.php?u=<real url>`). That host is a facebook.com
+subdomain, so it reads as internal — `unwrap_link_shim` pulls the real
+destination out of the `u` parameter before deciding, or chat links would
+open inside the app.
 
 Links are handled in two hooks that only ever see the main frame:
 

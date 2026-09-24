@@ -104,8 +104,27 @@ const DEBUG_REPORTER_JS: &str = r#"
       inv("debug_report", { what: msg }).catch(function () {});
     }
   }
+  function probeLinks() {
+    var main = document.querySelector("[role=main]") || document.body;
+    var as = main ? main.querySelectorAll("a[href]") : [];
+    var seen = {}, out = [];
+    Array.prototype.forEach.call(as, function (a) {
+      var h = a.getAttribute("href") || "";
+      if (h.indexOf("http") !== 0) return;
+      var host = "";
+      try { host = new URL(a.href).hostname; } catch (e) { host = "?"; }
+      var key = host + "|" + (a.getAttribute("target") || "-");
+      if (seen[key]) return;
+      seen[key] = 1;
+      out.push(host + " target=" + (a.getAttribute("target") || "-") + " href=" + a.href.slice(0, 90));
+    });
+    inv("debug_report", { what: "links(" + as.length + ") " + (out.join(" ;; ") || "none") })
+      .catch(function () {});
+  }
   setInterval(tick, 4000);
   setTimeout(tick, 2500);
+  setTimeout(probeLinks, 12000);
+
 })();
 "#;
 
@@ -155,6 +174,28 @@ fn is_login_challenge(url: &Url) -> bool {
         || host.ends_with(".gstatic.com");
 
     challenge_host && url.path().contains("/recaptcha")
+}
+
+/// Facebook rewrites links in messages through a redirector:
+/// `https://l.facebook.com/l.php?u=<real url>&h=...`
+///
+/// The shim lives on a facebook.com subdomain, so it reads as internal and a
+/// clicked link would open inside the app. Unwrap it to the real destination,
+/// which also skips the tracking hop.
+fn unwrap_link_shim(url: &Url) -> Option<Url> {
+    let host = url.host_str()?;
+    let is_shim = matches!(
+        host,
+        "l.facebook.com" | "lm.facebook.com" | "l.messenger.com" | "lm.messenger.com"
+    ) && url.path() == "/l.php";
+
+    if !is_shim {
+        return None;
+    }
+
+    let target = url.query_pairs().find(|(k, _)| k == "u")?.1.into_owned();
+    let parsed = target.parse::<Url>().ok()?;
+    matches!(parsed.scheme(), "http" | "https").then_some(parsed)
 }
 
 fn is_internal(url: &Url) -> bool {
@@ -376,12 +417,18 @@ pub fn run() {
                 // impossible. Link handling lives in the two hooks below,
                 // both of which only ever see the main frame.
                 .on_new_window(move |url, _features: NewWindowFeatures| {
+                    if std::env::var_os("MESSENGER_DEBUG").is_some() {
+                        eprintln!("[new-window] {url} internal={}", is_internal(&url));
+                    }
                     // Messenger opens links from messages with target="_blank",
                     // so this is where a clicked link actually lands.
-                    if is_internal(&url) {
+                    let target = unwrap_link_shim(&url).unwrap_or(url);
+                    if is_internal(&target) {
+                        // Left in-app deliberately: Messenger also uses
+                        // window.open for its own popups, calls included.
                         return NewWindowResponse::Allow;
                     }
-                    let _ = handle.opener().open_url(url.as_str(), None::<&str>);
+                    let _ = handle.opener().open_url(target.as_str(), None::<&str>);
                     NewWindowResponse::Deny
                 })
                 .on_page_load(move |webview, payload| {
@@ -424,8 +471,9 @@ pub fn run() {
                     // window (a link without target="_blank", or a JS redirect).
                     // Hand it to the browser and step back, so the window can
                     // never strand you off-site with no way back.
-                    if !is_internal(url) {
-                        let _ = page_handle.opener().open_url(url.as_str(), None::<&str>);
+                    let target = unwrap_link_shim(url).unwrap_or_else(|| url.clone());
+                    if !is_internal(&target) {
+                        let _ = page_handle.opener().open_url(target.as_str(), None::<&str>);
                         let _ = webview.eval(
                             "if (history.length > 1) { history.back(); } \
                              else { location.replace('https://www.messenger.com'); }",
@@ -492,6 +540,41 @@ mod tests {
         assert!(is_internal(&url(
             "https://connect.facebook.net/en_US/sdk.js"
         )));
+    }
+
+    #[test]
+    fn chat_links_unwrap_to_the_real_destination() {
+        // Exactly the shape Messenger renders for a link in a message.
+        let shim = url(
+            "https://l.facebook.com/l.php?u=https%3A%2F%2Fcarsandbids.com%2Fauctions%2F3qbLmvj1&h=AT1",
+        );
+        let real = unwrap_link_shim(&shim).expect("unwraps");
+        assert_eq!(real.as_str(), "https://carsandbids.com/auctions/3qbLmvj1");
+        // The shim itself looks internal; the destination must not.
+        assert!(is_internal(&shim));
+        assert!(!is_internal(&real));
+    }
+
+    #[test]
+    fn link_shim_variants_and_non_shims() {
+        assert!(unwrap_link_shim(&url(
+            "https://lm.facebook.com/l.php?u=https%3A%2F%2Fexample.com%2F"
+        ))
+        .is_some());
+        // Not the shim path.
+        assert!(unwrap_link_shim(&url(
+            "https://www.facebook.com/l.php?u=https%3A%2F%2Fexample.com"
+        ))
+        .is_none());
+        // No destination parameter.
+        assert!(unwrap_link_shim(&url("https://l.facebook.com/l.php?h=AT1")).is_none());
+        // Refuse to hand a non-http scheme to the OS.
+        assert!(
+            unwrap_link_shim(&url("https://l.facebook.com/l.php?u=javascript%3Aalert(1)"))
+                .is_none()
+        );
+        // A genuine Messenger page is untouched.
+        assert!(unwrap_link_shim(&url("https://www.facebook.com/messages")).is_none());
     }
 
     #[test]
